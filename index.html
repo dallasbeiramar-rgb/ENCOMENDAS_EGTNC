@@ -289,7 +289,6 @@
 
         <div class="search-container">
             <input type="text" id="search-input" placeholder="Pesquisar armamento..." oninput="renderizarProdutos()" style="margin:0">
-            <button onclick="atualizarCatalogo()" style="width: auto; padding: 0 15px; background: var(--primary);">🔄 ATUALIZAR LOJA</button>
         </div>
 
         <div id="aviso-desconto" style="margin-bottom: 15px; color: var(--green); font-weight: bold; text-align: center;" class="hidden">
@@ -382,13 +381,6 @@
     let comprovanteAliadoBase64 = "";
     let itemEmEdicaoIndex = -1;
 
-    // Função para atualizar o catálogo manualmente sem recarregar a página toda
-    function atualizarCatalogo() {
-        produtos = JSON.parse(localStorage.getItem('produtos_egito')) || [];
-        renderizarProdutos();
-        somClick.play();
-    }
-
     // Monitorar upload do comprovante de aliado
     document.getElementById('cli-foto-cargo').addEventListener('change', function(e) {
         const reader = new FileReader();
@@ -408,8 +400,6 @@
     window.addEventListener('load', () => {
         const salvo = localStorage.getItem('vendedor_nick_egito');
         if(salvo) document.getElementById('v-nick').value = salvo;
-        // Garantir que os produtos carreguem na primeira vez que o site abre
-        produtos = JSON.parse(localStorage.getItem('produtos_egito')) || [];
     });
 
     function toggleCampoAliado() {
@@ -490,8 +480,6 @@
             document.getElementById('aviso-desconto').classList.add('hidden');
         }
 
-        // Sincroniza produtos antes de mostrar
-        produtos = JSON.parse(localStorage.getItem('produtos_egito')) || [];
         renderizarProdutos();
     }
 
@@ -797,62 +785,66 @@
 
     function abrirVendas() {
         const nickVendedor = document.getElementById('v-nick').value.trim();
-        if(!nickVendedor) return alert("Defina seu Nick de Vendedor primeiro!");
+        if(!nickVendedor) return alert("Por favor, digite seu nick antes de visualizar as vendas.");
         
+        document.getElementById('titulo-vendedor-ativo').innerText = "CONTROLE DE PRODUÇÃO: " + nickVendedor.toUpperCase();
         document.getElementById('tela-admin').classList.add('hidden');
         document.getElementById('tela-vendas').classList.remove('hidden');
-        document.getElementById('titulo-vendedor-ativo').innerText = "PAINEL DE VENDAS: " + nickVendedor;
-        
-        renderizarEncomendasGestao();
+        renderizarGestao();
     }
 
-    function renderizarEncomendasGestao() {
-        const div = document.getElementById('lista-encomendas-gestao');
-        encomendas = JSON.parse(localStorage.getItem('encomendas_egito')) || [];
-        
-        div.innerHTML = encomendas.map(e => `
-            <div class="card" style="border-left: 5px solid ${e.vendedor ? 'var(--blue)' : 'var(--primary)'}">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>PEDIDO #${e.idSequencial} - ${e.clienteNick} (${e.clienteTipo})</strong>
-                    <span class="status-badge status-${e.status.toLowerCase()}">${e.status}</span>
-                </div>
-                <p>Itens: ${e.itens.map(i => `${i.qtd}x ${i.titulo}`).join(', ')}</p>
-                <p>Total: ${formatarDinheiro(e.valorTotal)}</p>
+    function renderizarGestao() {
+        const lista = document.getElementById('lista-encomendas-gestao');
+        lista.innerHTML = encomendas.map((e, i) => `
+            <div class="card info-encomenda">
+                <p><strong>PEDIDO #${e.idSequencial} - Cliente: ${e.clienteNick} (${e.clienteTipo})</strong></p>
+                <p>Itens: ${e.itens.map(it => `${it.qtd}x ${it.titulo}`).join(' | ')}</p>
+                <p>Total: <span style="color:var(--green)">${formatarDinheiro(e.valorTotal)}</span></p>
                 
-                ${e.fotoCargo ? `<button onclick="verFoto('${e.fotoCargo}')" style="background:#444; margin-bottom:10px;">Visualizar Comprovante Cargo</button>` : ''}
+                ${e.clienteTipo === 'Aliado' && e.fotoCargo ? `
+                    <div style="margin: 10px 0;">
+                        <button onclick="window.open('${e.fotoCargo}')" style="background:#444; font-size:10px; width:auto; padding:5px 10px;">🖼️ VER COMPROVANTE CARGO</button>
+                    </div>
+                ` : ''}
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <select onchange="alterarStatusPedido(${e.idInterno}, this.value)">
-                        <option ${e.status === 'Aguardando' ? 'selected' : ''}>Aguardando</option>
-                        <option ${e.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
-                        <option ${e.status === 'Pronta' ? 'selected' : ''}>Pronta</option>
-                        <option ${e.status === 'Negada' ? 'selected' : ''}>Negada</option>
-                    </select>
-                    <input type="text" placeholder="Prazo (ex: 15 min)" value="${e.prazo}" onchange="definirPrazo(${e.idInterno}, this.value)">
+                <p>Status: <span class="status-badge status-${e.status.toLowerCase()}">${e.status}</span></p>
+                
+                <div style="display:flex; gap:5px; flex-wrap:wrap">
+                    <button style="width:auto; background:var(--green); color:black" onclick="mudarStatus(${i}, 'Aceita')">ACEITAR</button>
+                    <button style="width:auto; background:var(--blue); color:black" onclick="mudarStatus(${i}, 'Preparando')">PRODUZINDO</button>
+                    <button style="width:auto; background:var(--orange); color:black" onclick="mudarStatus(${i}, 'Pronta')">PRONTA</button>
+                    <button style="width:auto; background:var(--primary)" onclick="mudarStatus(${i}, 'Negada')">NEGAR</button>
+                    ${(e.status === 'Concluida' || e.status === 'Negada') ? `
+                        <button style="width:auto; background:#333; color:red; border:1px solid red" onclick="excluirEncomenda(${i})">🗑️ EXCLUIR</button>
+                    ` : ''}
                 </div>
             </div>
         `).join('');
     }
 
-    function alterarStatusPedido(id, novoStatus) {
-        const idx = encomendas.findIndex(e => e.idInterno === id);
-        encomendas[idx].status = novoStatus;
-        encomendas[idx].vendedor = document.getElementById('v-nick').value;
+    function mudarStatus(index, status) {
+        const v = document.getElementById('v-nick').value.trim();
+        if(!v) return alert("Digite o seu nick de vendedor!");
+        
+        encomendas[index].status = status;
+        encomendas[index].vendedor = v;
+
+        if(status === 'Aceita' || status === 'Preparando') {
+            encomendas[index].prazo = prompt("Informe o prazo de entrega (ex: 20 min):");
+        }
+        
         localStorage.setItem('encomendas_egito', JSON.stringify(encomendas));
-        renderizarEncomendasGestao();
+        renderizarGestao();
+        renderizarStatsVendedores();
     }
 
-    function definirPrazo(id, prazo) {
-        const idx = encomendas.findIndex(e => e.idInterno === id);
-        encomendas[idx].prazo = prazo;
-        localStorage.setItem('encomendas_egito', JSON.stringify(encomendas));
+    function excluirEncomenda(i) {
+        if(confirm("Deseja realmente apagar este pedido do histórico?")) {
+            encomendas.splice(i, 1);
+            localStorage.setItem('encomendas_egito', JSON.stringify(encomendas));
+            renderizarGestao();
+        }
     }
-
-    function verFoto(base64) {
-        const win = window.open();
-        win.document.write('<iframe src="' + base64 + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
-    }
-
 </script>
 </body>
 </html>
