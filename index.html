@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EGITO_NCRP - Encomendas</title>
+    <style>
+        /* NOVA PALETA DE CORES: BRANCO E VERMELHO (ESTILO MODERNO) */
+        :root {
+            --primary: #ff0000; /* Vermelho Egito */
+            --primary-dark: #8b0000;
+            --bg-dark: #0a0a0a;
+            --card-bg: #121212;
+            --white: #ffffff;
+            --gray: #b3b3b3;
+            --green: #00ff88;
+            --blue: #00ccff;
+            --purple: #bf00ff;
+            --orange: #ff8800;
+            --neon-red: 0 0 15px rgba(255, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Oswald', 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at top right, rgba(255, 0, 0, 0.1), transparent),
+                              url('https://cdn.discordapp.com/attachments/1284882367156195389/1482589013163376640/Egito3.png?ex=69b7801d&is=69b62e9d&hm=3377be2e8fd8d864901a255030c498ca18bee04fd9c9bc298699870b53ead263&');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: var(--white);
+            margin: 0;
+            padding: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container { max-width: 1100px; margin: auto; animation: fadeIn 0.8s ease-out; }
+        .hidden { display: none !important; }
+        
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header-site { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            padding-bottom: 10px;
+        }
+
+        .header-site h1 {
+            font-size: 3rem;
+            margin: 0;
+            color: var(--white);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        .header-site p { color: var(--primary); font-weight: bold; letter-spacing: 2px; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #1a1a1a;
+            color: var(--white);
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); outline: none; box-shadow: var(--neon-red); }
+
+        button {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            transition: 0.3s all;
+        }
+
+        button:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .grid-produtos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .item-card {
+            background: #000;
+            padding: 0;
+            text-align: center;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .item-card:hover { border-color: var(--primary); transform: scale(1.02); }
+
+        .item-card .img-container {
+            background: #fff;
+            padding: 20px;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .item-card .img-container img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .item-card .info {
+            padding: 15px;
+            text-align: left;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .item-card h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--white);
+            text-transform: uppercase;
+        }
+
+        .item-card .price {
+            color: var(--white);
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 10px 0;
+            display: block;
+        }
+
+        .price-discount {
+            color: var(--green) !important;
+            font-size: 0.9rem !important;
+            text-decoration: none;
+        }
+
+        .old-price {
+            text-decoration: line-through;
+            color: #666;
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+
+        .item-card .btn-comprar {
+            background: var(--blue);
+            color: black;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 0.8rem;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .status-aguardando { background: #444; }
+        .status-preparando { background: var(--blue); }
+        .status-aceita { background: var(--green); color: black; }
+        .status-negada { background: var(--primary); }
+        .status-pronta { background: var(--orange); }
+        .status-concluida { background: var(--purple); }
+
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-buttons button { padding: 10px; font-size: 0.8rem; width: auto; flex-grow: 1; }
+
+        .info-encomenda { border-left: 4px solid var(--primary); }
+
+        .stars { color: #555; cursor: pointer; font-size: 20px; }
+        .stars.active { color: #ffcc00; }
+        .review-box { 
+            background: rgba(255,255,255,0.05); 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin-top: 10px;
+        }
+
+        .vendedor-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .vendedor-row:last-child { border-bottom: none; }
+
+        #campo-aliado {
+            border: 1px dashed var(--primary);
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            background: rgba(255, 0, 0, 0.05);
+        }
+
+        /* ESTILOS ADICIONADOS PARA CATEGORIAS */
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .filter-badge {
+            background: #1a1a1a;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid #333;
+            transition: 0.3s;
+        }
+        .filter-badge.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-site">
+        <h1>⚜️ EGITO NCRP ⚜️</h1>
+        <p>DEPARTAMENTO DE ARMAMENTO</p>
+    </div>
+
+    <div id="tela-login" class="section">
+        <div class="card" style="max-width: 450px; margin: auto;">
+            <h3 style="text-align:center; color: var(--primary);">BEM-VINDO AO ARSENAL</h3>
+            <input type="text" id="cli-nick" placeholder="NICK DO CIDADÃO" oninput="verificarCadastro()">
+            <input type="number" id="cli-passaporte" placeholder="ID (PASSAPORTE)">
+            <input type="text" id="cli-discord" placeholder="@ DISCORD">
+            <input type="text" id="cli-tel" placeholder="TELEFONE IN-GAME">
+            <select id="cli-tipo" onchange="toggleCampoAliado()">
+                <option value="Cidadão">CIDADÃO</option>
+                <option value="Aliado">ALIADO DA TROPA (25% OFF)</option>
+                <option value="Membro EGT">MEMBRO DO EGITO</option>
+            </select>
+            
+            <div id="campo-aliado" class="hidden">
+                <label style="font-size: 12px; color: var(--primary);">COMPROVANTE DE CARGO (DISCORD):</label>
+                <input type="file" id="cli-foto-cargo" accept="image/*">
+            </div>
+
+            <button onclick="salvarConta()" style="margin-bottom: 10px; background: #333;">💾 SALVAR CONTA</button>
+            <button onclick="irParaProdutos()">ENTRAR NO SITE</button>
+            <hr style="border:0; border-top:1px solid #222; margin:20px 0;">
+            <button style="background:transparent; color:var(--gray); border: 1px solid #333;" onclick="abrirAdmin()">PAINEL ADMINISTRATIVO</button>
+        </div>
+    </div>
+
+    <div id="tela-produtos" class="section hidden">
+        <div class="nav-buttons">
+            <button onclick="irParaCarrinho()" style="background: var(--blue); color: black;">🛒 CARRINHO (<span id="count-cart">0</span>)</button>
+            <button onclick="irParaMeusPedidos()">📋 MEUS PEDIDOS</button>
+            <button style="background: #333;" onclick="location.reload()">SAIR</button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Pesquisar armamento..." oninput="renderizarProdutos()" style="margin:0">
+        </div>
+
+        <div id="aviso-desconto" style="margin-bottom: 15px; color: var(--green); font-weight: bold; text-align: center;" class="hidden">
+            🛡️ ACESSO ALIADO: 25% DE DESCONTO APLICADO EM TUDO!
+        </div>
+        
+        <div class="grid-produtos" id="lista-produtos"></div>
+    </div>
+
+    <div id="tela-meus-pedidos" class="section hidden">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">HISTÓRICO DE ENCOMENDAS</h3>
+                <button onclick="atualizarStatusComprador()" style="width: auto; padding: 8px 15px; font-size: 12px; background: var(--blue); color: black;">🔄 ATUALIZAR STATUS</button>
+            </div>
+            <div id="lista-meus-pedidos"></div>
+            <button onclick="voltarProdutos()" style="background: #333; margin-top: 20px;">VOLTAR AO CATÁLOGO</button>
+        </div>
+    </div>
+
+    <div id="tela-carrinho" class="section hidden">
+        <div class="card">
+            <h3>CARRINHO DE COMPRAS</h3>
+            <div id="itens-selecionados"></div>
+            <div id="total-carrinho" style="margin-top: 20px; font-size: 1.2rem; text-align: right; border-top: 1px solid #333; padding-top: 10px;"></div>
+            <button onclick="confirmarEncomenda()" style="margin-top: 20px;">FINALIZAR ENCOMENDA</button>
+            <button onclick="voltarProdutos()" style="background: #333; margin-top: 10px;">ADICIONAR MAIS</button>
+        </div>
+    </div>
+
+    <div id="tela-admin" class="section hidden">
+        <div class="card" style="max-width: 400px; margin: auto;">
+            <h3>ACESSO RESTRITO</h3>
+            <input type="password" id="senha-adm" placeholder="SENHA DE ACESSO">
+            <button onclick="logarAdmin()">ACESSAR PAINEL</button>
+            <button onclick="location.reload()" style="background: #333; margin-top: 10px;">VOLTAR</button>
+        </div>
+
+        <div id="painel-adm" class="hidden">
+            <div class="card" style="border: 1px solid var(--purple);">
+                <h4 style="color: var(--purple);">📊 PERFORMANCE DOS VENDEDORES</h4>
+                <div id="stats-vendedores"></div>
+            </div>
+
+            <div class="card">
+                <h4 id="admin-form-title">GERENCIAR PRODUTO</h4>
+                <input type="text" id="p-titulo" placeholder="NOME DO ITEM">
+                <input type="file" id="p-upload" accept="image/*">
+                <input type="text" id="p-preco" placeholder="PREÇO (EX: 50000)">
+                <textarea id="p-desc" placeholder="DETALHES DO ITEM"></textarea>
+                <button id="btn-add-produto" onclick="adicionarProduto()">SALVAR PRODUTO NO SITE</button>
+                <button id="btn-cancelar-edit" class="hidden" onclick="cancelarEdicao()" style="background:#333; margin-top:5px;">CANCELAR</button>
+            </div>
+
+            <div class="card">
+                <h4>PRODUTOS ATIVOS</h4>
+                <div id="gestao-itens-lista"></div>
+            </div>
+
+            <div class="card">
+                <h4>GESTOR DE VENDAS</h4>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="v-nick" placeholder="NICK DO VENDEDOR" style="margin: 0; flex-grow: 1;">
+                    <button onclick="salvarNickVendedor()" style="width: auto; background: var(--blue); color: black; padding: 0 15px;">💾 SALVAR</button>
+                </div>
+                <button onclick="abrirVendas()" style="background: var(--green); color: black; margin-top: 10px;">VISUALIZAR PEDIDOS</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tela-vendas" class="section hidden">
+        <h3 id="titulo-vendedor-ativo">CONTROLE DE PRODUÇÃO</h3>
+        <div id="lista-encomendas-gestao"></div>
+        <button onclick="location.reload()" style="background: #333; margin-top: 20px;">SAIR DO PAINEL</button>
+    </div>
+</div>
+
+<script>
+    const somClick = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
+    const somSucesso = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3');
+
+    let produtos = JSON.parse(localStorage.getItem('produtos_egito')) || [];
+    let encomendas = JSON.parse(localStorage.getItem('encomendas_egito')) || [];
+    let contas = JSON.parse(localStorage.getItem('contas_egito')) || {}; 
+    let totalGeralPedidos = parseInt(localStorage.getItem('total_pedidos_egito')) || 0;
+
+    let carrinho = [];
+    let usuarioLogado = {};
+    let imagemBase64 = "";
+    let comprovanteAliadoBase64 = "";
+    let itemEmEdicaoIndex = -1;
+
+    // Monitorar upload do comprovante de aliado
+    document.getElementById('cli-foto-cargo').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onloadend = () => { comprovanteAliadoBase64 = reader.result; };
+        if (e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+    });
+
+    // Função para salvar o nick do vendedor no navegador
+    function salvarNickVendedor() {
+        const nick = document.getElementById('v-nick').value.trim();
+        if(!nick) return alert("Digite um nick primeiro!");
+        localStorage.setItem('vendedor_nick_egito', nick);
+        alert("Nick '" + nick + "' salvo!");
+    }
+
+    // Carregar nick salvo ao abrir a página
+    window.addEventListener('load', () => {
+        const salvo = localStorage.getItem('vendedor_nick_egito');
+        if(salvo) document.getElementById('v-nick').value = salvo;
+    });
+
+    function toggleCampoAliado() {
+        const tipo = document.getElementById('cli-tipo').value;
+        const campo = document.getElementById('campo-aliado');
+        if(tipo === 'Aliado') {
+            campo.classList.remove('hidden');
+        } else {
+            campo.classList.add('hidden');
+            comprovanteAliadoBase64 = "";
+        }
+    }
+
+    function verificarCadastro() {
+        const nickDigitado = document.getElementById('cli-nick').value.trim();
+        if (contas[nickDigitado]) {
+            const dados = contas[nickDigitado];
+            document.getElementById('cli-passaporte').value = dados.pass;
+            document.getElementById('cli-discord').value = dados.discord;
+            document.getElementById('cli-tel').value = dados.tel;
+            document.getElementById('cli-tipo').value = dados.tipo;
+            comprovanteAliadoBase64 = dados.fotoCargo || "";
+            toggleCampoAliado();
+        }
+    }
+
+    function salvarConta() {
+        const nick = document.getElementById('cli-nick').value.trim();
+        const pass = document.getElementById('cli-passaporte').value;
+        const tipo = document.getElementById('cli-tipo').value;
+
+        if (!nick || !pass) return alert("Preencha Nick e ID!");
+        if (tipo === 'Aliado' && !comprovanteAliadoBase64) {
+            return alert("Aliados precisam anexar a foto dos cargos do Discord!");
+        }
+
+        contas[nick] = {
+            pass: pass, 
+            discord: document.getElementById('cli-discord').value,
+            tel: document.getElementById('cli-tel').value, 
+            tipo: tipo,
+            fotoCargo: comprovanteAliadoBase64
+        };
+        localStorage.setItem('contas_egito', JSON.stringify(contas));
+        alert("Dados salvos com sucesso!");
+    }
+
+    document.getElementById('p-upload').addEventListener('change', function(e) {
+        const reader = new FileReader();
+        reader.onloadend = () => { imagemBase64 = reader.result; };
+        if (e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+    });
+
+    function formatarDinheiro(valor) {
+        return "R$ " + parseFloat(valor).toLocaleString('pt-BR');
+    }
+
+    function irParaProdutos() {
+        const nick = document.getElementById('cli-nick').value;
+        const pass = document.getElementById('cli-passaporte').value;
+        const tipo = document.getElementById('cli-tipo').value;
+
+        if(!nick || !pass) return alert("Identifique-se!");
+        
+        usuarioLogado = { 
+            nick: nick, 
+            pass: pass, 
+            tipo: tipo,
+            fotoCargo: comprovanteAliadoBase64 
+        };
+
+        document.getElementById('tela-login').classList.add('hidden');
+        document.getElementById('tela-produtos').classList.remove('hidden');
+        
+        if(tipo === 'Aliado') {
+            document.getElementById('aviso-desconto').classList.remove('hidden');
+        } else {
+            document.getElementById('aviso-desconto').classList.add('hidden');
+        }
+
+        renderizarProdutos();
+    }
+
+    function renderizarProdutos() {
+        const lista = document.getElementById('lista-produtos');
+        const termoBusca = document.getElementById('search-input').value.toLowerCase();
+        const isAliado = usuarioLogado.tipo === 'Aliado';
+
+        const produtosFiltrados = produtos.filter(p => 
+            p.titulo.toLowerCase().includes(termoBusca)
+        );
+
+        lista.innerHTML = produtosFiltrados.map((p, i) => {
+            const originalIdx = produtos.indexOf(p);
+            const precoOriginal = parseFloat(p.preco.replace(/[^0-9]/g, '')) || 0;
+            const precoFinal = isAliado ? precoOriginal * 0.75 : precoOriginal;
+
+            return `
+                <div class="item-card">
+                    <div class="img-container">
+                        <img src="${p.foto}">
+                    </div>
+                    <div class="info">
+                        <div>
+                            <h4>${p.titulo}</h4>
+                            <p style="font-size:10px; color:#666; margin:5px 0;">${p.desc || ''}</p>
+                        </div>
+                        <div>
+                            <span class="price">
+                                ${isAliado ? `<span class="old-price">${formatarDinheiro(precoOriginal)}</span>` : ''}
+                                <span class="${isAliado ? 'price-discount' : ''}">${formatarDinheiro(precoFinal)}</span>
+                            </span>
+                            <button class="btn-comprar" onclick="adicionarAoCarrinho(${originalIdx})">🛒 ADICIONAR AO CARRINHO</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if(produtosFiltrados.length === 0) {
+            lista.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 50px; color: var(--gray);">Nenhum item encontrado.</p>`;
+        }
+    }
+
+    function adicionarAoCarrinho(i) {
+        somClick.play();
+        const item = {...produtos[i]};
+        const precoOriginal = parseFloat(item.preco.replace(/[^0-9]/g, '')) || 0;
+        
+        // Aplica o preço com desconto se for aliado
+        item.precoUnitario = usuarioLogado.tipo === 'Aliado' ? precoOriginal * 0.75 : precoOriginal;
+        
+        carrinho.push(item);
+        document.getElementById('count-cart').innerText = carrinho.length;
+    }
+
+    function irParaCarrinho() {
+        if(carrinho.length === 0) return alert("Carrinho vazio!");
+        document.getElementById('tela-produtos').classList.add('hidden');
+        document.getElementById('tela-carrinho').classList.remove('hidden');
+        
+        renderizarCarrinho();
+    }
+
+    function renderizarCarrinho() {
+        let total = 0;
+        document.getElementById('itens-selecionados').innerHTML = carrinho.map((item, i) => {
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:center; background: #1a1a1a; padding:15px; margin-bottom:10px; border-radius:8px">
+                    <div>
+                        <span>${item.titulo}</span><br>
+                        <small style="color:var(--gray)">Un: ${formatarDinheiro(item.precoUnitario)}</small>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <input type="number" id="qtd-${i}" value="1" min="1" style="width:60px; margin:0" onchange="renderizarCarrinho()">
+                        <button onclick="removerDoCarrinho(${i})" style="width:30px; padding:5px; background:var(--primary)">X</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        carrinho.forEach((item, i) => {
+            const qtdElem = document.getElementById(`qtd-${i}`);
+            const qtd = qtdElem ? qtdElem.value : 1;
+            total += item.precoUnitario * qtd;
+        });
+
+        document.getElementById('total-carrinho').innerHTML = `TOTAL: <span style="color:var(--green)">${formatarDinheiro(total)}</span>`;
+    }
+
+    function removerDoCarrinho(i) {
+        carrinho.splice(i, 1);
+        document.getElementById('count-cart').innerText = carrinho.length;
+        if(carrinho.length === 0) voltarProdutos();
+        else renderizarCarrinho();
+    }
+
+    function confirmarEncomenda() {
+        totalGeralPedidos++;
+        let valorTotalPedido = 0;
+
+        const pedido = {
+            idInterno: Date.now(),
+            idSequencial: totalGeralPedidos,
+            clientePass: usuarioLogado.pass,
+            clienteNick: usuarioLogado.nick,
+            clienteTipo: usuarioLogado.tipo,
+            fotoCargo: usuarioLogado.fotoCargo, // Envia o comprovante para o admin
+            itens: carrinho.map((item, i) => {
+                const qtdElem = document.getElementById(`qtd-${i}`);
+                const qtd = qtdElem ? qtdElem.value : 1;
+                valorTotalPedido += item.precoUnitario * qtd;
+                return {titulo: item.titulo, qtd: qtd, precoUn: item.precoUnitario};
+            }),
+            valorTotal: valorTotalPedido,
+            status: 'Aguardando', vendedor: '', entrega: '', prazo: '',
+            finalizadoPeloCliente: false,
+            avaliacao: 0
+        };
+
+        encomendas.push(pedido);
+        localStorage.setItem('encomendas_egito', JSON.stringify(encomendas));
+        localStorage.setItem('total_pedidos_egito', totalGeralPedidos);
+        somSucesso.play();
+        
+        alert(`ENCOMENDA #${totalGeralPedidos} ENVIADA!\nValor Total: ${formatarDinheiro(valorTotalPedido)}`);
+        
+        carrinho = [];
+        document.getElementById('count-cart').innerText = "0";
+        voltarProdutos();
+    }
+
+    function irParaMeusPedidos() {
+        document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+        document.getElementById('tela-meus-pedidos').classList.remove('hidden');
+        renderizarMeusPedidos();
+    }
+
+    function atualizarStatusComprador() {
+        somClick.play();
+        encomendas = JSON.parse(localStorage.getItem('encomendas_egito')) || [];
+        renderizarMeusPedidos();
+    }
+
+    function renderizarMeusPedidos() {
+        const lista = document.getElementById('lista-meus-pedidos');
+        const meus = encomendas.filter(e => e.clientePass === usuarioLogado.pass);
+        
+        lista.innerHTML = meus.length === 0 ? "<p>Nenhuma encomenda encontrada.</p>" : meus.map(e => `
+            <div class="card info-encomenda">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>ENCOMENDA #${e.idSequencial}</strong>
+                    <span class="status-badge status-${e.status.toLowerCase()}">${e.status}</span>
+                </div>
+                <p style="color:var(--gray)">Itens: ${e.itens.map(i => `${i.qtd}x ${i.titulo}`).join(' | ')}</p>
+                <p>Valor: <span style="color:var(--green)">${formatarDinheiro(e.valorTotal)}</span></p>
+                
+                ${e.vendedor ? `<div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:8px; border:1px solid #333; margin-top:10px;">
+                    Vendedor: ${e.vendedor} | Prazo: ${e.prazo}
+                </div>` : ''}
+
+                ${(e.status === 'Pronta' || e.status === 'Concluida') && !e.finalizadoPeloCliente ? `
+                    <button onclick="confirmarRecebimento(${e.idInterno})" style="background: var(--green); color: black; margin-top:10px;">Confirmar Recebimento</button>
+                ` : ''}
+
+                ${e.finalizadoPeloCliente ? `
+                    <div class="review-box">
+                        <p style="margin:0 0 5px 0">Avalie o atendimento:</p>
+                        <div id="stars-${e.idInterno}">
+                            ${[1,2,3,4,5].map(num => `
+                                <span class="stars ${e.avaliacao >= num ? 'active' : ''}" onclick="avaliar(${e.idInterno}, ${num})">★</span>
+                            `).join('')}
+                        </div>
+                        <small style="color: var(--green)">Obrigado pela preferência!</small>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    function confirmarRecebimento(id) {
+        const index = encomendas.findIndex(e => e.idInterno === id);
+        encomendas[index].finalizadoPeloCliente = true;
+        encomendas[index].status = 'Concluida';
+        localStorage.setItem('encomendas_egito', JSON.stringify(encomendas));
+        renderizarMeusPedidos();
+    }
+
+    function avaliar(id, nota) {
+        const index = encomendas.findIndex(e => e.idInterno === id);
+        encomendas[index].avaliacao = nota;
+        localStorage.setItem('encomendas_egito', JSON.stringify(encomendas));
+        renderizarMeusPedidos();
+    }
+
+    function voltarProdutos() {
+        document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+        document.getElementById('tela-produtos').classList.remove('hidden');
+        renderizarProdutos();
+    }
+
+    function abrirAdmin() {
+        document.getElementById('tela-login').classList.add('hidden');
+        document.getElementById('tela-admin').classList.remove('hidden');
+    }
+
+    function logarAdmin() {
+        if(document.getElementById('senha-adm').value === 'Egitonc001') {
+            document.getElementById('painel-adm').classList.remove('hidden');
+            document.getElementById('senha-adm').classList.add('hidden');
+            renderizarGestaoItens();
+            renderizarStatsVendedores();
+        }
+    }
+
+    function renderizarStatsVendedores() {
+        const div = document.getElementById('stats-vendedores');
+        let stats = {};
+        encomendas.forEach(e => {
+            if (e.vendedor) {
+                if (!stats[e.vendedor]) {
+                    stats[e.vendedor] = { totalVendas: 0, somaNotas: 0, totalAvaliacoes: 0 };
+                }
+                stats[e.vendedor].totalVendas++;
+                if (e.avaliacao > 0) {
+                    stats[e.vendedor].somaNotas += e.avaliacao;
+                    stats[e.vendedor].totalAvaliacoes++;
+                }
+            }
+        });
+        const vendedorsList = Object.keys(stats);
+        if (vendedorsList.length === 0) {
+            div.innerHTML = "<p style='color:#666'>Nenhuma venda registrada ainda.</p>";
+            return;
+        }
+        div.innerHTML = vendedorsList.map(v => {
+            const s = stats[v];
+            const media = s.totalAvaliacoes > 0 ? (s.somaNotas / s.totalAvaliacoes).toFixed(1) : "0.0";
+            return `
+                <div class="vendedor-row">
+                    <span>👤 <strong>${v}</strong></span>
+                    <span>📦 Entregas: <strong>${s.totalVendas}</strong></span>
+                    <span style="color: #ffcc00">⭐ Média: <strong>${media}</strong> (${s.totalAvaliacoes} aval.)</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function adicionarProduto() {
+        const novo = {
+            titulo: document.getElementById('p-titulo').value,
+            foto: imagemBase64 || (itemEmEdicaoIndex > -1 ? produtos[itemEmEdicaoIndex].foto : ""),
+            preco: document.getElementById('p-preco').value,
+            desc: document.getElementById('p-desc').value
+        };
+        if(itemEmEdicaoIndex > -1) produtos[itemEmEdicaoIndex] = novo;
+        else produtos.push(novo);
+        localStorage.setItem('produtos_egito', JSON.stringify(produtos));
+        cancelarEdicao();
+        renderizarGestaoItens();
+    }
+
+    function renderizarGestaoItens() {
+        const div = document.getElementById('gestao-itens-lista');
+        div.innerHTML = produtos.map((p, i) => `
+            <div class="admin-item-row" style="display:flex; justify-content:space-between; margin-bottom:5px; background:rgba(255,255,255,0.02); padding:5px; border-radius:5px">
+                <span>${p.titulo}</span>
+                <div>
+                    <button style="width:60px; padding:5px; background:var(--blue); color:black" onclick="editarItem(${i})">EDIT</button>
+                    <button style="width:60px; padding:5px; background:var(--primary); color:white" onclick="excluirItem(${i})">X</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function editarItem(i) {
+        itemEmEdicaoIndex = i;
+        const p = produtos[i];
+        document.getElementById('p-titulo').value = p.titulo;
+        document.getElementById('p-preco').value = p.preco;
+        document.getElementById('p-desc').value = p.desc;
+        document.getElementById('btn-add-produto').innerText = "ATUALIZAR ITEM";
+        document.getElementById('btn-cancelar-edit').classList.remove('hidden');
+    }
+
+    function cancelarEdicao() {
+        itemEmEdicaoIndex = -1;
+        document.getElementById('p-titulo').value = "";
+        document.getElementById('p-preco').value = "";
+        document.getElementById('p-desc').value = "";
+        document.getElementById('btn-add-produto').innerText = "SALVAR PRODUTO NO SITE";
+        document.getElementById('btn-cancelar-edit').classList.add('hidden');
+        imagemBase64 = "";
+    }
+
+    function excluirItem(i) {
+        if(confirm("Excluir item?")) {
+            produtos.splice(i, 1);
+            localStorage.setItem('produtos_egito', JSON.stringify(produtos));
+            renderizarGestaoItens();
+        }
+    }
+
+    function abrirVendas() {
+        const nickVendedor = document.getElementById('v-nick').value.trim();
+        if(!nickVendedor) return alert("Por favor, digite seu nick antes de visualizar as vendas.");
+        
+        document.getElementById('titulo-vendedor-ativo').innerText = "CONTROLE DE PRODUÇÃO: " + nickVendedor.toUpperCase();
+        document.getElementById('tela-admin').classList.add('hidden');
+        document.getElementById('tela-vendas').classList.remove('hidden');
+        renderizarGestao();
+    }
+
+    function renderizarGestao() {
+        const lista = document.getElementById('lista-encomendas-gestao');
+        lista.innerHTML = encomendas.map((e, i) => `
+            <div class="card info-encomenda">
+                <p><strong>PEDIDO #${e.idSequencial} - Cliente: ${e.clienteNick} (${e.clienteTipo})</strong></p>
+                <p>Itens: ${e.itens.map(it => `${it.qtd}x ${it.titulo}`).join(' | ')}</p>
+                <p>Total: <span style="color:var(--green)">${formatarDinheiro(e.valorTotal)}</span></p>
+                
+                ${e.clienteTipo === 'Aliado' && e.fotoCargo ? `
+                    <div style="margin: 10px 0;">
+                        <button onclick="window.open('${e.fotoCargo}')" style="background:#444; font-size:10px; width:auto; padding:5px 10px;">🖼️ VER COMPROVANTE CARGO</button>
+                    </div>
+                ` : ''}
+
+                <p>Status: <span class="status-badge status-${e.status.toLowerCase()}">${e.status}</span></p>
+                
+                <div style="display:flex; gap:5px; flex-wrap:wrap">
+                    <button style="width:auto; background:var(--green); color:black" onclick="mudarStatus(${i}, 'Aceita')">ACEITAR</button>
+                    <button style="width:auto; background:var(--blue); color:black" onclick="mudarStatus(${i}, 'Preparando')">PRODUZINDO</button>
+                    <button style="width:auto; background:var(--orange); color:black" onclick="mudarStatus(${i}, 'Pronta')">PRONTA</button>
+                    <button style="width:auto; background:var(--primary)" onclick="mudarStatus(${i}, 'Negada')">NEGAR</button>
+                    ${(e.status === 'Concluida' || e.status === 'Negada') ? `
+                        <button style="width:auto; background:#333; color:red; border:1px solid red" onclick="excluirEncomenda(${i})">🗑️ EXCLUIR</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function mudarStatus(index, status) {
+        const v = document.getElementById('v-nick').value.trim();
+        if(!v) return alert("Digite o seu nick de vendedor!");
+        
+        encomendas[index].status = status;
+        encomendas[index].vendedor = v;
+
+        if(status === 'Aceita' || status === 'Preparando') {
+            encomendas[index].prazo = prompt("Informe o prazo de entrega (ex: 20 min):");
+        }
+        
+        localStorage.setItem('encomendas_egito', JSON.stringify(encomendas));
+        renderizarGestao();
+        renderizarStatsVendedores();
+    }
+
+    function excluirEncomenda(i) {
+        if(confirm("Deseja realmente apagar este pedido do histórico?")) {
+            encomendas.splice(i, 1);
+            localStorage.setItem('encomendas_egito', JSON.stringify(encomendas));
+            renderizarGestao();
+        }
+    }
+</script>
+</body>
+</html>
